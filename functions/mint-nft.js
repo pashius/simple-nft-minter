@@ -20,11 +20,11 @@ exports.handler = async (event) => {
         const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
         console.log("Making request to Bolt API...");
 
-                const response = await fetch("https://bolt-dev-v2.lightlink.io/v1/mint", {
+        const response = await fetch("https://bolt-dev-v2.lightlink.io/v1/mint", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `ApiKey ${boltApiKey}`
+                "x-api-key": boltApiKey // Revert to x-api-key
             },
             body: JSON.stringify({
                 recipient,
