@@ -24,7 +24,7 @@ exports.handler = async (event) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": boltApiKey
+                "Authorization": `Bearer ${boltApiKey}` // Try this instead of x-api-key
             },
             body: JSON.stringify({
                 recipient,
