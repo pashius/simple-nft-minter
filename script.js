@@ -6,8 +6,8 @@ const walletStatus = document.getElementById('wallet-status');
 let userAddress = null;
 let provider = null;
 
-// Hardcode the contractAddress (organization_key from the deployment response)
-const contractAddress = "a2ef391e-994f-4376-9ff3-41398655c246";
+// Use the provided contractAddress
+const contractAddress = "0x62c554f40edc356203ca60584b22831459113aca";
 
 // Function to connect the wallet and ensure Lightlink Testnet
 async function connectWallet() {
@@ -75,16 +75,9 @@ async function connectWallet() {
 }
 
 // Function to claim the NFT using the hardcoded contract address
-// Function to claim the NFT using the contract address
 async function claimNFT() {
     if (!provider || !userAddress) {
         alert("Please connect your wallet first!");
-        return;
-    }
-
-    const contractAddress = contractAddressInput.value.trim();
-    if (!contractAddress) {
-        alert("Please fetch or enter a contract address!");
         return;
     }
 
@@ -116,11 +109,11 @@ async function claimNFT() {
             },
             body: JSON.stringify({
                 recipient: userAddress,
-                metadata: nftData.metadata, // Send only the metadata object as per previous setup
+                metadata: nftData.metadata,
                 chainId: 1891,
                 contractAddress: contractAddress,
-                amount: nftData.amount, // Include amount
-                user_id: nftData.user_id // Include user_id
+                amount: nftData.amount,
+                user_id: nftData.user_id
             })
         });
 
