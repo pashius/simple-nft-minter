@@ -1,7 +1,9 @@
-// Elements from the HTML
 const connectWalletBtn = document.getElementById('connect-wallet');
 const claimNftBtn = document.getElementById('claim-nft');
 const walletStatus = document.getElementById('wallet-status');
+
+let userAddress = null;
+let provider = null;
 
 // Function to connect the wallet and ensure Lightlink Testnet
 async function connectWallet() {
