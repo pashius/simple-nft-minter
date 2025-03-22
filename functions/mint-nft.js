@@ -12,29 +12,33 @@ exports.handler = async (event) => {
     }
 
     try {
-        const { metadata, userAddress } = JSON.parse(event.body);
-        console.log("Parsed body:", { metadata, userAddress });
+        const { metadata } = JSON.parse(event.body);
+        console.log("Parsed body:", { metadata });
 
-        if (!metadata || !userAddress) {
+        if (!metadata) {
             console.log("Missing required fields");
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Missing required fields: metadata and userAddress are required' })
+                body: JSON.stringify({ error: 'Missing required field: metadata is required' })
             };
         }
 
-        const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
-        const projectId = "a2ef391e-994f-4376-9ff3-41398655c246"; // organization_key
-        const userId = userAddress; // Use the wallet address as USER_ID
+        const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi"; // Replace with your valid API key
+        const contractAddress = "0x62c554f40edc356203ca60584b22831459113aca";
+        const userId = "67de738d5cd50de76fb345b8"; // Use the id from the deployment response
         const baseUrl = "https://bolt-dev-v2.lightlink.io";
 
-        const mintUrl = `${baseUrl}/${projectId}/${userId}/mint`;
+        const mintUrl = `${baseUrl}/tokens/mint/erc721/${contractAddress}`;
         console.log("Minting NFT with URL:", mintUrl);
 
         const requestBody = {
-            name: metadata.name,
-            description: metadata.description,
-            attributes: metadata.attributes
+            metadata: {
+                name: metadata.name,
+                description: metadata.description,
+                attributes: metadata.attributes
+            },
+            amount: 1, // Mint 1 NFT
+            user_id: userId
         };
 
         const response = await fetch(mintUrl, {
