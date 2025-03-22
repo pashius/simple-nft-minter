@@ -3,12 +3,6 @@ const connectWalletBtn = document.getElementById('connect-wallet');
 const claimNftBtn = document.getElementById('claim-nft');
 const walletStatus = document.getElementById('wallet-status');
 
-let userAddress = null;
-let provider = null;
-
-// Hardcode the contractAddress (organization_key from the deployment response)
-const contractAddress = "a2ef391e-994f-4376-9ff3-41398655c246";
-
 // Function to connect the wallet and ensure Lightlink Testnet
 async function connectWallet() {
     if (typeof window.ethereum === 'undefined') {
