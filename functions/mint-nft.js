@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     const API_KEY       = process.env.BOLT_API_KEY || "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
     const BASE_URL      = "https://bolt-dev-v2.lightlink.io";
     const CONTRACT_ADDR = "0x62c554f40edc356203ca60584b22831459113aca";
-    const USER_ID       = address;
+    const USER_ID       = "0xF555cecA11e23B57FC678E399822D35e60876B26";
 
     const payload = {
       metadata: {
