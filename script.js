@@ -71,28 +71,20 @@ async function connectWallet() {
 }
 
 // Function to claim the NFT using the hardcoded contract address
-async function mintNFT(userAddress) {
-  if (!userAddress) {
-    console.error("No wallet address available");
-    return;
-  }
+async function mintNFT() {
+  if (!userAddress) return console.error("No wallet address");
 
   try {
-    const response = await fetch("/.netlify/functions/mint-nft", {
+    const res = await fetch("/.netlify/functions/mint-nft", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: userAddress }),
+      body: JSON.stringify({ userId: userAddress }),
     });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Mint failed:", result);
-    } else {
-      console.log("Mint succeeded:", result);
-    }
-  } catch (error) {
-    console.error("Network or runtime error:", error);
+    const result = await res.json();
+    if (!res.ok) console.error("Mint failed:", result);
+    else console.log("Mint succeeded:", result);
+  } catch(e) {
+    console.error("Network error:", e);
   }
 }
 
