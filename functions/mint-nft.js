@@ -31,35 +31,23 @@ exports.handler = async (event) => {
         const accountsApi = new AccountsApi(config);
         const tokensApi = new TokensApi(config);
 
-        // Step 1: Create a managed account for the user (if not already created)
-        let account;
-        try {
-            account = await accountsApi.createAccount({
-                type: AccountType.MANAGED,
-                external_ref: userAddress
-            });
-            console.log("Account Created:", account);
-        } catch (error) {
-            if (error.message.includes("already exists")) {
-                console.log("Account already exists for user:", userAddress);
-                account = { address: userAddress }; // Use wallet address as fallback
-            } else {
-                throw error;
-            }
-        }
-
         // Step 2: Mint the NFT to the user's account using the deployed contract address
         const contractAddress = "0x62554f40edc356203c069584b282314591113aca"; // From the dashboard
         const mintParams = {
             metadata: {
-                name: metadata.name,
-                description: metadata.description,
-                attributes: metadata.attributes
+                name: "test", // Simplified to match dashboard
+                description: "test",
+                attributes: [
+                    {
+                        trait_type: "rare",
+                        value: "1"
+                    }
+                ]
             },
             amount: 1,
             user_id: userAddress // Use the userAddress directly, as in the dashboard request
         };
-
+        
         const mintResult = await tokensApi.mintERC721Token(contractAddress, mintParams);
         console.log("Minting Result:", mintResult);
 
