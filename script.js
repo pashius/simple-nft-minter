@@ -107,13 +107,20 @@ async function claimNFT() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                recipient: userAddress,
-                metadata: nftData.metadata,
-                chainId: 1891,
-                contractAddress: contractAddress,
-                amount: nftData.amount,
-                user_id: nftData.user_id
+            body: JSON.stringify(
+                {
+                  "metadata": {
+                    "name": "Test NFT",
+                    "description": "Test NFT 1",
+                    "image": "https://via.placeholder.com/150",
+                    "attributes": [
+                      {
+                        "num": "1"
+                      }
+                    ]
+                  },
+                  "amount": 1,
+                  "user_id": "string"
             })
         });
 
