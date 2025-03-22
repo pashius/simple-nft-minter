@@ -1,52 +1,81 @@
-const fetch = require('node-fetch');
+const { Configuration, AccountsApi, TokensApi, AccountType } = require('lightlink-bolt-sdk');
 
 exports.handler = async (event) => {
     console.log("Function invoked with event:", event);
 
     if (event.httpMethod !== 'POST') {
         console.log("Method not allowed:", event.httpMethod);
-        return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+        return {
+            statusCode: 405,
+            body: JSON.stringify({ error: 'Method Not Allowed' })
+        };
     }
 
     try {
-        const { recipient, metadata, chainId, contractAddress } = JSON.parse(event.body);
-        console.log("Parsed body:", { recipient, metadata, chainId, contractAddress });
+        const { metadata, userAddress } = JSON.parse(event.body);
+        console.log("Parsed body:", { metadata, userAddress });
 
-        if (!recipient || !metadata || !chainId || !contractAddress) {
+        if (!metadata || !userAddress) {
             console.log("Missing required fields");
-            return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields: recipient, metadata, chainId, and contractAddress are required' }) };
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Missing required fields: metadata and userAddress are required' })
+            };
         }
 
-        const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
-        const baseUrl = "https://bolt-dev-v2.lightlink.io";
-
-        console.log("Minting NFT with contract address:", contractAddress);
-        const response = await fetch(`${baseUrl}/tokens/mint/erc721/${contractAddress}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-api-key": boltApiKey
-            },
-            body: JSON.stringify({
-                recipient: recipient,
-                metadata: metadata,
-                chainId: chainId
-            })
+        const config = new Configuration({
+            basePath: 'https://bolt-v2.lightlink.io',
+            apiKey: 'egU3TdRQCvQ7Qhe9KF47o7UI6b1YC39aCFYNI' // Hardcoded API key
         });
 
-        console.log("Bolt API response status:", response.status);
-        const result = await response.json();
-        console.log("Bolt API response body:", result);
+        const accountsApi = new AccountsApi(config);
+        const tokensApi = new TokensApi(config);
+
+        // Step 1: Create a managed account for the user (if not already created)
+        let account;
+        try {
+            account = await accountsApi.createAccount({
+                type: AccountType.MANAGED,
+                external_ref: userAddress
+            });
+            console.log("Account Created:", account);
+        } catch (error) {
+            if (error.message.includes("already exists")) {
+                console.log("Account already exists for user:", userAddress);
+                account = { address: userAddress }; // Use wallet address as fallback
+            } else {
+                throw error;
+            }
+        }
+
+        // Step 2: Mint the NFT to the user's account using the deployed contract address
+        const contractAddress = "0x62554f40edc356203c069584b282314591113aca"; // From the dashboard
+        const mintParams = {
+            metadata: {
+                name: metadata.name,
+                description: metadata.description,
+                attributes: metadata.attributes
+            },
+            amount: 1,
+            user_id: userAddress // Use the userAddress directly, as in the dashboard request
+        };
+
+        const mintResult = await tokensApi.mintERC721Token(contractAddress, mintParams);
+        console.log("Minting Result:", mintResult);
 
         return {
-            statusCode: response.ok ? 200 : response.status,
-            body: JSON.stringify(result)
+            statusCode: 200,
+            body: JSON.stringify(mintResult)
         };
     } catch (error) {
-        console.error("Function error:", error);
+        console.error("Function error:", error.message);
+        console.error("Error stack:", error.stack);
+        if (error.response) {
+            console.error("Response data:", JSON.stringify(error.response.data, null, 2));
+        }
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ error: "Failed to mint NFT", details: error.message })
         };
     }
 };
