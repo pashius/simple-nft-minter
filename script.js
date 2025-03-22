@@ -6,9 +6,6 @@ const walletStatus = document.getElementById('wallet-status');
 let userAddress = null;
 let provider = null;
 
-// Use the provided contractAddress
-const contractAddress = "0x62c554f40edc356203ca60584b22831459113aca";
-
 // Function to connect the wallet and ensure Lightlink Testnet
 async function connectWallet() {
     if (typeof window.ethereum === 'undefined') {
@@ -74,7 +71,7 @@ async function connectWallet() {
     }
 }
 
-// Function to claim the NFT using the hardcoded contract address
+// Function to claim the NFT
 async function claimNFT() {
     if (!provider || !userAddress) {
         alert("Please connect your wallet first!");
@@ -85,19 +82,14 @@ async function claimNFT() {
         claimNftBtn.disabled = true;
         claimNftBtn.textContent = "Claiming...";
 
-        const nftData = {
-            metadata: {
-                name: "Lightlink Test NFT #1",
-                description: "A unique test NFT created on the Lightlink Pegasus Testnet to demonstrate NFT minting functionality.",
-                image: "https://ipfs.io/ipfs/QmTestImageHash1234567890abcdef",
-                attributes: [
-                    { trait_type: "Rarity", value: "Common" },
-                    { trait_type: "Category", value: "Test Collectible" },
-                    { trait_type: "Created On", value: "March 22, 2025" }
-                ]
-            },
-            amount: 1,
-            user_id: userAddress
+        const nftMetadata = {
+            name: "Lightlink Test NFT #1",
+            description: "A unique test NFT created on the Lightlink Pegasus Testnet to demonstrate NFT minting functionality.",
+            attributes: [
+                { trait_type: "Rarity", value: "Common" },
+                { trait_type: "Category", value: "Test Collectible" },
+                { trait_type: "Created On", value: "March 22, 2025" }
+            ]
         };
 
         const mintEndpoint = "/.netlify/functions/mint-nft";
@@ -107,20 +99,9 @@ async function claimNFT() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(
-                {
-                  "metadata": {
-                    "name": "Test NFT",
-                    "description": "Test NFT 1",
-                    "image": "https://via.placeholder.com/150",
-                    "attributes": [
-                      {
-                        "num": "1"
-                      }
-                    ]
-                  },
-                  "amount": 1,
-                  "user_id": "string"
+            body: JSON.stringify({
+                metadata: nftMetadata,
+                userAddress: userAddress
             })
         });
 
@@ -137,7 +118,7 @@ async function claimNFT() {
         }
 
         if (response.ok) {
-            alert(`NFT claimed! Tx Hash: ${result.txHash}`);
+            alert(`NFT claimed! Response: ${JSON.stringify(result)}`);
             console.log("Minting success:", result);
         } else {
             throw new Error(result.error || "Minting failed");
