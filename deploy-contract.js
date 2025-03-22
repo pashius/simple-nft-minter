@@ -13,10 +13,16 @@ async function deployContract() {
                 "x-api-key": boltApiKey
             },
             body: JSON.stringify({
-                chainId: 1891, // Lightlink Testnet
-                name: "TestNFT",
-                symbol: "TNFT"
-                // Add more parameters if required by the Bolt API (e.g., royaltyPercentage, gasLimit)
+            
+                    "metadata": {
+                      "name": "Test",
+                      "description": "Test NFT",
+                      "symbol": "TNFT",
+                      "image": "https://via.placeholder.com/150",
+                      "banner_image": "https://via.placeholder.com/600x200"
+                    },
+                    "type": "ERC721"
+
             })
         });
 
@@ -35,6 +41,7 @@ async function deployContract() {
 
         console.log("Contract deployed successfully!");
         console.log("Contract Address:", contractAddress);
+        console.log("Transaction Hash:", deployResult.txHash);
         return contractAddress;
     } catch (error) {
         console.error("Error deploying contract:", error.message);

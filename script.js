@@ -1,5 +1,6 @@
 // Elements from the HTML
 const connectWalletBtn = document.getElementById('connect-wallet');
+const contractAddressInput = document.getElementById('contract-address');
 const claimNftBtn = document.getElementById('claim-nft');
 const walletStatus = document.getElementById('wallet-status');
 
@@ -59,6 +60,9 @@ async function connectWallet() {
         walletStatus.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
         connectWalletBtn.style.display = 'none';
         claimNftBtn.disabled = false;
+
+        // Pre-fill the contract address input with the organization_key
+        contractAddressInput.value = "a2ef391e-994f-4376-9ff3-41398655c246"; // From deployment response
     } catch (error) {
         console.error("Wallet connection failed:", error.message);
         if (error.code === 4001) {
@@ -71,10 +75,16 @@ async function connectWallet() {
     }
 }
 
-// Function to claim the NFT using Bolt API
+// Function to claim the NFT using the contract address
 async function claimNFT() {
     if (!provider || !userAddress) {
         alert("Please connect your wallet first!");
+        return;
+    }
+
+    const contractAddress = contractAddressInput.value.trim();
+    if (!contractAddress) {
+        alert("Please enter a contract address!");
         return;
     }
 
@@ -88,9 +98,9 @@ async function claimNFT() {
             image: "https://via.placeholder.com/150"
         };
 
-        const netlifyFunctionEndpoint = "/.netlify/functions/mint-nft";
+        const mintEndpoint = "/.netlify/functions/mint-nft";
 
-        const response = await fetch(netlifyFunctionEndpoint, {
+        const response = await fetch(mintEndpoint, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -98,11 +108,23 @@ async function claimNFT() {
             body: JSON.stringify({
                 recipient: userAddress,
                 metadata: nftMetadata,
-                chainId: 1891
+                chainId: 1891,
+                contractAddress: contractAddress // Pass the contractAddress
             })
         });
 
-        const result = await response.json();
+        console.log("Mint response status:", response.status);
+        console.log("Mint response headers:", [...response.headers.entries()]);
+
+        let result;
+        try {
+            result = await response.json();
+        } catch (jsonError) {
+            const rawText = await response.text();
+            console.error("Failed to parse JSON. Raw response:", rawText);
+            throw new Error(`Failed to parse response: ${jsonError.message}`);
+        }
+
         if (response.ok) {
             alert(`NFT claimed! Tx Hash: ${result.txHash}`);
             console.log("Minting success:", result);
@@ -117,6 +139,7 @@ async function claimNFT() {
         claimNftBtn.textContent = "Claim NFT";
     }
 }
+
 // Add event listeners to buttons
 connectWalletBtn.addEventListener('click', connectWallet);
 claimNftBtn.addEventListener('click', claimNFT);

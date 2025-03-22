@@ -9,27 +9,28 @@ exports.handler = async (event) => {
     }
 
     try {
-        const { recipient, metadata, chainId } = JSON.parse(event.body);
-        console.log("Parsed body:", { recipient, metadata, chainId });
+        const { recipient, metadata, chainId, contractAddress } = JSON.parse(event.body);
+        console.log("Parsed body:", { recipient, metadata, chainId, contractAddress });
 
-        if (!recipient || !metadata || !chainId) {
+        if (!recipient || !metadata || !chainId || !contractAddress) {
             console.log("Missing required fields");
-            return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
+            return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields: recipient, metadata, chainId, and contractAddress are required' }) };
         }
 
         const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
-        console.log("Making request to Bolt API...");
+        const baseUrl = "https://bolt-dev-v2.lightlink.io";
 
-        const response = await fetch("https://bolt-dev-v2.lightlink.io/v1/mint", {
+        console.log("Minting NFT with contract address:", contractAddress);
+        const response = await fetch(`${baseUrl}/tokens/mint/erc721/${contractAddress}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": boltApiKey // Revert to x-api-key
+                "x-api-key": boltApiKey
             },
             body: JSON.stringify({
-                recipient,
-                metadata,
-                chainId
+                recipient: recipient,
+                metadata: metadata,
+                chainId: chainId
             })
         });
 
