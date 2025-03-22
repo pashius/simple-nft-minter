@@ -69,64 +69,31 @@ async function connectWallet() {
 }
 
 // Function to claim the NFT using the hardcoded contract address
-async function claimNFT() {
-    if (!provider || !userAddress) {
-        alert("Please connect your wallet first!");
-        return;
+async function mintNFT(userAddress) {
+  if (!userAddress) {
+    console.error("No wallet address available");
+    return;
+  }
+
+  try {
+    const response = await fetch("/.netlify/functions/mint-nft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: userAddress }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("Mint failed:", result);
+    } else {
+      console.log("Mint succeeded:", result);
     }
-
-    try {
-        claimNftBtn.disabled = true;
-        claimNftBtn.textContent = "Claiming...";
-
-        const nftMetadata = {
-            name: "Test NFT",
-            description: "A simple test NFT",
-            image: "https://via.placeholder.com/150"
-        };
-
-        const mintEndpoint = "/.netlify/functions/mint-nft";
-
-        const response = await fetch(mintEndpoint, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                recipient: userAddress,
-                metadata: nftMetadata,
-                chainId: 1891,
-                contractAddress: contractAddress // Use the hardcoded contractAddress
-            })
-        });
-
-        console.log("Mint response status:", response.status);
-        console.log("Mint response headers:", [...response.headers.entries()]);
-
-        let result;
-        try {
-            result = await response.json();
-        } catch (jsonError) {
-            const rawText = await response.text();
-            console.error("Failed to parse JSON. Raw response:", rawText);
-            throw new Error(`Failed to parse response: ${jsonError.message}`);
-        }
-
-        if (response.ok) {
-            alert(`NFT claimed! Tx Hash: ${result.txHash}`);
-            console.log("Minting success:", result);
-        } else {
-            throw new Error(result.error || "Minting failed");
-        }
-    } catch (error) {
-        console.error("NFT claim failed:", error);
-        alert(`Failed to claim NFT: ${error.message}`);
-    } finally {
-        claimNftBtn.disabled = false;
-        claimNftBtn.textContent = "Claim NFT";
-    }
+  } catch (error) {
+    console.error("Network or runtime error:", error);
+  }
 }
 
 // Add event listeners to buttons
 connectWalletBtn.addEventListener('click', connectWallet);
-claimNftBtn.addEventListener('click', claimNFT);
+claimNftBtn.addEventListener('click', mintNFT);
