@@ -12,36 +12,32 @@ exports.handler = async (event) => {
     }
 
     try {
-        const { recipient, metadata, chainId, contractAddress, amount, user_id } = JSON.parse(event.body);
-        console.log("Parsed body:", { recipient, metadata, chainId, contractAddress, amount, user_id });
+        const { metadata, userAddress } = JSON.parse(event.body);
+        console.log("Parsed body:", { metadata, userAddress });
 
-        if (!recipient || !metadata || !chainId || !contractAddress) {
+        if (!metadata || !userAddress) {
             console.log("Missing required fields");
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Missing required fields: recipient, metadata, chainId, and contractAddress are required' })
+                body: JSON.stringify({ error: 'Missing required fields: metadata and userAddress are required' })
             };
         }
 
         const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
+        const projectId = "a2ef391e-994f-4376-9ff3-41398655c246"; // organization_key
+        const userId = userAddress; // Use the wallet address as USER_ID
         const baseUrl = "https://bolt-dev-v2.lightlink.io";
 
-        console.log("Minting NFT with contract address:", contractAddress);
+        const mintUrl = `${baseUrl}/${projectId}/${userId}/mint`;
+        console.log("Minting NFT with URL:", mintUrl);
+
         const requestBody = {
-            recipient: recipient,
-            metadata: metadata,
-            chainId: chainId
+            name: metadata.name,
+            description: metadata.description,
+            attributes: metadata.attributes
         };
 
-        // Include amount and user_id if provided
-        if (amount !== undefined) {
-            requestBody.amount = amount;
-        }
-        if (user_id !== undefined) {
-            requestBody.user_id = user_id;
-        }
-
-        const response = await fetch(`${baseUrl}/tokens/mint/erc721/${contractAddress}`, {
+        const response = await fetch(mintUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
