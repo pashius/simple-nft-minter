@@ -1,12 +1,13 @@
 // Elements from the HTML
 const connectWalletBtn = document.getElementById('connect-wallet');
-const fetchContractAddressBtn = document.getElementById('fetch-contract-address');
-const contractAddressInput = document.getElementById('contract-address');
 const claimNftBtn = document.getElementById('claim-nft');
 const walletStatus = document.getElementById('wallet-status');
 
 let userAddress = null;
 let provider = null;
+
+// Hardcode the contractAddress (organization_key from the deployment response)
+const contractAddress = "a2ef391e-994f-4376-9ff3-41398655c246";
 
 // Function to connect the wallet and ensure Lightlink Testnet
 async function connectWallet() {
@@ -60,7 +61,6 @@ async function connectWallet() {
 
         walletStatus.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
         connectWalletBtn.style.display = 'none';
-        fetchContractAddressBtn.disabled = false;
         claimNftBtn.disabled = false;
     } catch (error) {
         console.error("Wallet connection failed:", error.message);
@@ -74,52 +74,10 @@ async function connectWallet() {
     }
 }
 
-// Function to fetch the actual contract address
-async function fetchContractAddress() {
-    try {
-        fetchContractAddressBtn.disabled = true;
-        fetchContractAddressBtn.textContent = "Fetching...";
-
-        const contractId = "67de738d5cd50de76fb345b8"; // Use the id from the deployment response
-        const fetchEndpoint = `/.netlify/functions/get-contract-details?contractId=${contractId}`;
-
-        const response = await fetch(fetchEndpoint, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-
-        console.log("Fetch contract address response status:", response.status);
-        const result = await response.json();
-        console.log("Fetch contract address response body:", result);
-
-        if (response.ok) {
-            const contractAddress = result.contractAddress;
-            alert(`Contract Address: ${contractAddress}`);
-            contractAddressInput.value = contractAddress; // Update the input field
-        } else {
-            throw new Error(result.error || "Failed to fetch contract address");
-        }
-    } catch (error) {
-        console.error("Failed to fetch contract address:", error);
-        alert(`Failed to fetch contract address: ${error.message}`);
-    } finally {
-        fetchContractAddressBtn.disabled = false;
-        fetchContractAddressBtn.textContent = "Fetch Contract Address";
-    }
-}
-
-// Function to claim the NFT using the contract address
+// Function to claim the NFT using the hardcoded contract address
 async function claimNFT() {
     if (!provider || !userAddress) {
         alert("Please connect your wallet first!");
-        return;
-    }
-
-    const contractAddress = contractAddressInput.value.trim();
-    if (!contractAddress) {
-        alert("Please fetch or enter a contract address!");
         return;
     }
 
@@ -144,7 +102,7 @@ async function claimNFT() {
                 recipient: userAddress,
                 metadata: nftMetadata,
                 chainId: 1891,
-                contractAddress: contractAddress
+                contractAddress: contractAddress // Use the hardcoded contractAddress
             })
         });
 
@@ -177,5 +135,4 @@ async function claimNFT() {
 
 // Add event listeners to buttons
 connectWalletBtn.addEventListener('click', connectWallet);
-fetchContractAddressBtn.addEventListener('click', fetchContractAddress);
 claimNftBtn.addEventListener('click', claimNFT);
