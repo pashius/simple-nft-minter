@@ -25,7 +25,7 @@ exports.handler = async (event) => {
 
         const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi"; // Replace with your valid API key
         const contractAddress = "0x62c554f40edc356203ca60584b22831459113aca";
-        const userId = "67de738d5cd50de76fb345b8"; // Use the id from the deployment response
+        const userId = "0xf555ceca411e23b57fc678e399822d35e60876b26"; // Use the id from the deployment response
         const baseUrl = "https://bolt-dev-v2.lightlink.io";
 
         const mintUrl = `${baseUrl}/tokens/mint/erc721/${contractAddress}`;
