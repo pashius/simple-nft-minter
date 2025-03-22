@@ -100,8 +100,7 @@ async function claimNFT() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                metadata: nftMetadata,
-                userAddress: userAddress
+                metadata: nftMetadata
             })
         });
 
