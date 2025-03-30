@@ -1,8 +1,6 @@
 // /.netlify/functions/mint-nft.js
 const axios = require('axios');
 
-
-
 exports.handler = async (event) => {
   try {
     // Parse the incoming POST body
@@ -37,7 +35,7 @@ exports.handler = async (event) => {
 
     // 🚀 Call Bolt’s mint endpoint
     const { data } = await axios.post(
-      `https://bolt-dev-v2.lightlink.io/tokens/mint/erc721/${CONTRACT_ADDR}`,
+      https://bolt-dev-v2.lightlink.io/tokens/mint/erc721/${CONTRACT_ADDR},
       payload,
       { headers: { 'x-api-key': API_KEY } }
     );
@@ -47,12 +45,6 @@ exports.handler = async (event) => {
   catch (err) {
     console.error('Mint error:', err.response?.data || err.message);
     return {
-
-    statusCode: 200,
-    body: JSON.stringify({
-      status: 'success',
-      data
-    }),
       statusCode: err.response?.status || 500,
       body: JSON.stringify({
         error: err.message,
@@ -61,29 +53,3 @@ exports.handler = async (event) => {
     };
   }
 };
-
-document.getElementById("claim-nft").addEventListener("click", async () => {
-  const mintStatus = document.getElementById("mint-status");
-  mintStatus.textContent = "🛠 Minting your NFT...";
-
-  try {
-    const response = await fetch("/.netlify/functions/mint-nft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: userAddress })
-    });
-
-    const result = await response.json();
-
-    if (response.ok && result.status === "success") {
-      mintStatus.textContent = "✅ Your NFT has been minted!";
-      console.log("Mint response:", result.data);
-    } else {
-      mintStatus.textContent = "❌ Mint failed.";
-      console.error("Mint error:", result);
-    }
-  } catch (err) {
-    mintStatus.textContent = "❌ An error occurred.";
-    console.error(err);
-  }
-});
