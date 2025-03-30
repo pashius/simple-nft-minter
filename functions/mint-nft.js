@@ -24,10 +24,10 @@ exports.handler = async (event) => {
     // 📬 Construct the payload with the client’s wallet address
     const payload = {
       metadata: {
-        name: 'Complete NFT',
+        name: 'Intern NFT',
         description: 'Minted via Bolt API',
-        image: 'https://example.com/image.png',
-        attributes: [{ trait_type: 'Rarity', value: 'Common' }]
+        image: 'https://raw.githubusercontent.com/pashius/simple-nft-minter/refs/heads/master/intern_hand.png',
+        attributes: [{ trait_type: 'Rarity', value: 'Dank' }]
       },
       amount: 1,
       user_id: userId   // ← HERE is where we use the wallet address
