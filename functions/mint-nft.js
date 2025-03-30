@@ -24,7 +24,7 @@ exports.handler = async (event) => {
         }
 
         const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi"; // Replace with your valid API key
-        const contractAddress = "0x62c554f40edc356203ca60584b22831459113aca";
+        const contractAddress = "0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2";
         const userId = "0xf555ceca411e23b57fc678e399822d35e60876b26"; // Use the id from the deployment response
         const baseUrl = "https://bolt-dev-v2.lightlink.io";
 
