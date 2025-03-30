@@ -19,7 +19,7 @@ exports.handler = async (event) => {
     }
 
     // 📦 Static ERC‑721 contract address (replace with yours)
-    const CONTRACT_ADDR = '0x62c554f40edc356203ca60584b22831459113aca';
+    const CONTRACT_ADDR = '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2';
 
     // 📬 Construct the payload with the client’s wallet address
     const payload = {
