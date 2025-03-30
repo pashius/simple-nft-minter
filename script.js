@@ -90,12 +90,9 @@ async function mintNFT() {
 
     const result = await res.json();
 
-    if (!res.ok || result.status !== "success") {
-      console.error("Mint failed:", result);
-      mintStatus.textContent = "Mint failed. Try again.";
-    } else {
-      console.log("Mint succeeded:", result);
-      mintStatus.textContent = "Your NFT has been minted!";
+    if (!res.ok || result.status == "pending") {
+      console.log("Claim successful!:", result);
+      mintStatus.textContent = "Claim Successful. Try again.";
     }
   } catch (e) {
     console.error("Network error:", e);
