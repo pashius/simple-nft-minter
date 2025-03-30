@@ -35,10 +35,10 @@ exports.handler = async (event) => {
 
     // 🚀 Call Bolt’s mint endpoint
     const { data } = await axios.post(
-      https://bolt-dev-v2.lightlink.io/tokens/mint/erc721/${CONTRACT_ADDR},
-      payload,
-      { headers: { 'x-api-key': API_KEY } }
-    );
+    `https://bolt-dev-v2.lightlink.io/tokens/mint/erc721/${CONTRACT_ADDR}`, 
+    payload,
+    { headers: { 'x-api-key': API_KEY } }
+  );
 
     return { statusCode: 200, body: JSON.stringify(data) };
   }
