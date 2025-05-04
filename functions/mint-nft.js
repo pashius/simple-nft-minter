@@ -16,7 +16,7 @@ exports.handler = async (event) => {
     const BASE_URL = 'https://bolt-dev-v2.lightlink.io';
     const BLOCKSCOUT_API = 'https://pegasus.lightlink.io/api';
 
-    // Step 1 → Mint NFT
+    // Mint NFT
     const mintPayload = {
       metadata: {
         name: 'Intern NFT',
@@ -33,13 +33,13 @@ exports.handler = async (event) => {
       mintPayload,
       { headers: { 'x-api-key': API_KEY } }
     );
-    console.log('Mint response:', mintRes.data);
+    console.log('✅ Mint response:', mintRes.data);
 
-    // Step 2 → Wait 30 sec for blockchain indexing
-    console.log('⏳ Waiting 30 seconds before querying Blockscout...');
+    // Wait 30 sec
+    console.log('⏳ Waiting 30 sec for Blockscout index...');
     await new Promise((resolve) => setTimeout(resolve, 30000));
 
-    // Step 3 → Query Blockscout for latest tokenId
+    // Query Blockscout
     const scoutUrl = `${BLOCKSCOUT_API}?module=account&action=tokennfttx&address=${MINT_WALLET}&contractaddress=${CONTRACT_ADDR}&sort=desc`;
     const scoutRes = await axios.get(scoutUrl);
     const scoutData = scoutRes.data.result || [];
@@ -50,9 +50,9 @@ exports.handler = async (event) => {
 
     const latestToken = scoutData[0];
     const tokenId = latestToken.tokenID;
-    console.log('✅ Found tokenId from Blockscout:', tokenId);
+    console.log('✅ tokenId from Blockscout:', tokenId);
 
-    // Step 4 → Transfer to user
+    // Transfer NFT to user
     const transferPayload = {
       from: MINT_WALLET,
       to: userId,
@@ -65,7 +65,7 @@ exports.handler = async (event) => {
       { headers: { 'x-api-key': API_KEY } }
     );
 
-    console.log('Transfer success:', transferRes.data);
+    console.log('✅ Transfer success:', transferRes.data);
 
     return {
       statusCode: 200,
@@ -75,18 +75,11 @@ exports.handler = async (event) => {
         transfer: transferRes.data
       })
     };
-  } 
-  return {
-  statusCode: 500,
-  body: JSON.stringify({ error: 'Something went wrong' })
-};
-  
-  catch (err) {
-    console.error('Error FULL:', err);
-    console.error('Error RESPONSE:', err.response?.data);
-    console.error('Error STACK:', err.stack);
+  } catch (err) {
+    console.error('❌ FULL ERROR:', err);
+    console.error('❌ RESPONSE DATA:', err.response?.data);
     return {
-      statusCode: err.response?.status || 500,
+      statusCode: 500,
       body: JSON.stringify({
         error: err.message,
         details: err.response?.data || null
