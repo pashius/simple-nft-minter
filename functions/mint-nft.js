@@ -25,7 +25,7 @@ exports.handler = async (event) => {
         attributes: [{ trait_type: 'Rarity', value: 'Dank' }]
       },
       amount: 1,
-      user_id: MINT_WALLET
+      user_id: userId
     };
 
     const mintRes = await axios.post(
@@ -45,7 +45,7 @@ exports.handler = async (event) => {
 
     // Step 2 → Transfer NFT to user wallet
     const transferPayload = {
-      from: MINT_WALLET,
+      from: userId,
       to: userId,
       tokenId: tokenId
     };
