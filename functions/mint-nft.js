@@ -75,7 +75,13 @@ exports.handler = async (event) => {
         transfer: transferRes.data
       })
     };
-  } catch (err) {
+  } 
+  return {
+  statusCode: 500,
+  body: JSON.stringify({ error: 'Something went wrong' })
+};
+  
+  catch (err) {
     console.error('Error FULL:', err);
     console.error('Error RESPONSE:', err.response?.data);
     console.error('Error STACK:', err.stack);
