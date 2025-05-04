@@ -11,8 +11,6 @@ exports.handler = async (event) => {
     }
 
     const API_KEY = process.env.BOLT_API_KEY || "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
-    if (!API_KEY) throw new Error('BOLT_API_KEY is not set in environment');
-
     const CONTRACT_ADDR = '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2';
     const MINT_WALLET = '0xf555ceca411e23b57fc678e399822d35e60876b26';
     const BASE_URL = 'https://bolt-dev-v2.lightlink.io';
@@ -34,49 +32,48 @@ exports.handler = async (event) => {
       mintPayload,
       { headers: { 'x-api-key': API_KEY } }
     );
+    console.log('Mint response:', mintRes.data);
 
-    const mintData = mintRes.data;
-    console.log('Mint response:', mintData);
+    // ➥ 30-second delay before polling
+    console.log('⏳ Waiting 30 seconds before polling balances...');
+    await new Promise((resolve) => setTimeout(resolve, 30000));
 
-    const taskId = mintData.id;
-    if (!taskId) throw new Error('No task ID returned from mint response');
-
-    // Step 2 → Poll the task status for up to 30 seconds
-    let tokenId;
-    const pollInterval = 5000; // 5 seconds
-    const maxAttempts = 6; // 6 × 5s = 30s
+    // Step 2 → Poll balances to detect tokenId
+    const pollInterval = 30000;
+    const maxAttempts = 4;
     let attempt = 0;
+    let tokenId;
 
     while (attempt < maxAttempts) {
       attempt++;
-      console.log(`Polling attempt ${attempt} for task ${taskId}`);
+      console.log(`Polling balances attempt ${attempt}`);
 
-      const taskRes = await axios.get(`${BASE_URL}/tasks/${taskId}`, {
-        headers: { 'x-api-key': API_KEY }
-      });
+      const balancesRes = await axios.get(
+        `${BASE_URL}/tokens/${MINT_WALLET}/balances?page_size=10&page_number=0`,
+        { headers: { 'x-api-key': API_KEY } }
+      );
 
-      const taskData = taskRes.data;
-      console.log('Task status:', taskData.status);
+      const items = balancesRes.data.items || [];
+      console.log(`Balances found: ${items.length}`);
 
-      if (taskData.status === 'SUCCESS' && taskData.result?.tokenId != null) {
-        tokenId = taskData.result.tokenId;
-        console.log('✅ tokenId ready:', tokenId);
+      const nft = items.find(
+        (item) => item.contract.toLowerCase() === CONTRACT_ADDR.toLowerCase()
+      );
+
+      if (nft) {
+        tokenId = nft.token_id;
+        console.log('✅ Found tokenId:', tokenId);
         break;
       }
 
-      if (taskData.status === 'FAILED') {
-        throw new Error('Minting task failed');
-      }
-
-      // Wait before next attempt
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
     if (!tokenId) {
-      throw new Error('Timed out waiting for tokenId');
+      throw new Error('Timed out waiting for tokenId in balances');
     }
 
-    // Step 3 → Transfer NFT to user wallet
+    // Step 3 → Transfer to user
     const transferPayload = {
       from: MINT_WALLET,
       to: userId,
@@ -89,17 +86,15 @@ exports.handler = async (event) => {
       { headers: { 'x-api-key': API_KEY } }
     );
 
-    const transferData = transferRes.data;
-    console.log('Transfer success:', transferData);
+    console.log('Transfer success:', transferRes.data);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        mint: mintData,
-        transfer: transferData
+        mint: mintRes.data,
+        transfer: transferRes.data
       })
     };
-
   } catch (err) {
     console.error('Error:', err.response?.data || err.message);
     return {
