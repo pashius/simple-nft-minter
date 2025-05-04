@@ -1,77 +1,54 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 exports.handler = async (event) => {
-    console.log("Function invoked with event:", event);
-
-    if (event.httpMethod !== 'POST') {
-        console.log("Method not allowed:", event.httpMethod);
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: 'Method Not Allowed' })
-        };
+  try {
+    // Parse the incoming POST body
+    const { userId } = JSON.parse(event.body || '{}');
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing userId (wallet address)' })
+      };
     }
 
-    try {
-        const { metadata } = JSON.parse(event.body);
-        console.log("Parsed body:", { metadata });
-
-        if (!metadata) {
-            console.log("Missing required fields");
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Missing required field: metadata is required' })
-            };
-        }
-
-        const boltApiKey = "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi"; // Replace with your valid API key
-        const contractAddress = "0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2";
-        const userId = "0xf555ceca411e23b57fc678e399822d35e60876b26"; // Use the id from the deployment response
-        const baseUrl = "https://bolt-dev-v2.lightlink.io";
-
-        const mintUrl = ${baseUrl}/tokens/mint/erc721/${contractAddress};
-        console.log("Minting NFT with URL:", mintUrl);
-
-        const requestBody = {
-            metadata: {
-                name: metadata.name,
-                description: metadata.description,
-                attributes: metadata.attributes
-            },
-            amount: 1, // Mint 1 NFT
-            user_id: userId
-        };
-
-        const response = await fetch(mintUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "x-api-key": boltApiKey
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        console.log("Bolt API response status:", response.status);
-        const result = await response.json();
-        console.log("Bolt API response body:", result);
-
-        if (!response.ok) {
-            console.log("Bolt API request failed:", result);
-            return {
-                statusCode: response.status,
-                body: JSON.stringify({ error: result.message || "Failed to mint NFT" })
-            };
-        }
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify(result)
-        };
-    } catch (error) {
-        console.error("Function error:", error.message);
-        console.error("Error stack:", error.stack);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: "Internal Server Error", details: error.message })
-        };
+    // 🔒 Pull your Bolt API key from Netlify’s ENV
+    const API_KEY       = process.env.BOLT_API_KEY || "egU3tAdRCQvQ7Qhe9KFA7e7oUI60iYC39naCFyNi";
+    if (!API_KEY) {
+      throw new Error('BOLT_API_KEY is not set in environment');
     }
+
+    // 📦 Static ERC‑721 contract address (replace with yours)
+    const CONTRACT_ADDR = '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2';
+
+    // 📬 Construct the payload with the client’s wallet address
+    const payload = {
+      metadata: {
+        name: 'Intern NFT',
+        description: 'Minted via Bolt API',
+        image: 'https://raw.githubusercontent.com/pashius/simple-nft-minter/refs/heads/master/intern_hand.png',
+        attributes: [{ trait_type: 'Rarity', value: 'Dank' }]
+      },
+      amount: 1,
+      user_id: userId   // ← HERE is where we use the wallet address
+    };
+
+    // 🚀 Call Bolt’s mint endpoint
+    const { data } = await axios.post(
+    https://bolt-dev-v2.lightlink.io/tokens/mint/erc721/${CONTRACT_ADDR}, 
+    payload,
+    { headers: { 'x-api-key': API_KEY } }
+  );
+
+    return { statusCode: 200, body: JSON.stringify(data) };
+  }
+  catch (err) {
+    console.error('Mint error:', err.response?.data || err.message);
+    return {
+      statusCode: err.response?.status || 500,
+      body: JSON.stringify({
+        error: err.message,
+        details: err.response?.data || null
+      })
+    };
+  }
 };
