@@ -14,6 +14,7 @@ exports.handler = async (event) => {
     const CONTRACT_ADDR = '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2';
     const MINT_WALLET = '0xf555ceca411e23b57fc678e399822d35e60876b26';
     const BASE_URL = 'https://bolt-dev-v2.lightlink.io';
+    const BLOCKSCOUT_API = 'https://pegasus.lightlink.io/api';
 
     // Step 1 → Mint NFT
     const mintPayload = {
@@ -34,46 +35,24 @@ exports.handler = async (event) => {
     );
     console.log('Mint response:', mintRes.data);
 
-    // ➥ 30-second delay before polling
-    console.log('⏳ Waiting 30 seconds before polling balances...');
+    // Step 2 → Wait 30 sec for blockchain indexing
+    console.log('⏳ Waiting 30 seconds before querying Blockscout...');
     await new Promise((resolve) => setTimeout(resolve, 30000));
 
-    // Step 2 → Poll balances to detect tokenId
-    const pollInterval = 30000;
-    const maxAttempts = 4;
-    let attempt = 0;
-    let tokenId;
+    // Step 3 → Query Blockscout for latest tokenId
+    const scoutUrl = `${BLOCKSCOUT_API}?module=account&action=tokennfttx&address=${MINT_WALLET}&contractaddress=${CONTRACT_ADDR}&sort=desc`;
+    const scoutRes = await axios.get(scoutUrl);
+    const scoutData = scoutRes.data.result || [];
 
-    while (attempt < maxAttempts) {
-      attempt++;
-      console.log(`Polling balances attempt ${attempt}`);
-
-      const balancesRes = await axios.get(
-        `${BASE_URL}/tokens/${MINT_WALLET}/balances?page_size=10&page_number=0`,
-        { headers: { 'x-api-key': API_KEY } }
-      );
-
-      const items = balancesRes.data.items || [];
-      console.log(`Balances found: ${items.length}`);
-
-      const nft = items.find(
-        (item) => item.contract.toLowerCase() === CONTRACT_ADDR.toLowerCase()
-      );
-
-      if (nft) {
-        tokenId = nft.token_id;
-        console.log('✅ Found tokenId:', tokenId);
-        break;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    if (!scoutData || scoutData.length === 0) {
+      throw new Error('No token transfers found on Blockscout');
     }
 
-    if (!tokenId) {
-      throw new Error('Timed out waiting for tokenId in balances');
-    }
+    const latestToken = scoutData[0];
+    const tokenId = latestToken.tokenID;
+    console.log('✅ Found tokenId from Blockscout:', tokenId);
 
-    // Step 3 → Transfer to user
+    // Step 4 → Transfer to user
     const transferPayload = {
       from: MINT_WALLET,
       to: userId,
@@ -92,11 +71,14 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         mint: mintRes.data,
+        tokenId: tokenId,
         transfer: transferRes.data
       })
     };
   } catch (err) {
-    console.error('Error:', err.response?.data || err.message);
+    console.error('Error FULL:', err);
+    console.error('Error RESPONSE:', err.response?.data);
+    console.error('Error STACK:', err.stack);
     return {
       statusCode: err.response?.status || 500,
       body: JSON.stringify({
