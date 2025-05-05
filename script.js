@@ -90,7 +90,7 @@ async function mintNFT() {
 
         const result = await res.json();
 
-        if (!res.ok || result.status === "pending") {
+        if (!res.ok || result.status != "error") {
             console.log("Claim successful!:", result);
             mintStatus.textContent = "Claim Successful. Adding to wallet in 5 sec...";
 
