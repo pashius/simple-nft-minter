@@ -103,7 +103,7 @@ async function mintNFT() {
                             type: 'ERC721',
                             options: {
                                 address: '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2', // your contract address
-                                tokenId: result.tokenId || 'LAST_KNOWN_TOKEN_ID', // replace or track from backend if needed
+                                tokenId: String(result.tokenId + 1 || 'LAST_KNOWN_TOKEN_ID'), // replace or track from backend if needed
                                 symbol: 'IFT',
                                 decimals: 0,
                                 image: 'https://raw.githubusercontent.com/pashius/simple-nft-minter/refs/heads/master/intern_hand.png',
