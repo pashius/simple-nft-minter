@@ -55,7 +55,7 @@ async function connectWallet() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         console.log("Connected address:", userAddress);
 
-        walletStatus.textContent = Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)};
+        walletStatus.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
         connectWalletBtn.style.display = 'none';
         claimNftBtn.disabled = false;
     } catch (error) {
@@ -72,32 +72,62 @@ async function connectWallet() {
 
 // Function to claim the NFT using the hardcoded contract address
 async function mintNFT() {
-  const mintStatus = document.getElementById("mint-status");
-  if (!userAddress) {
-    console.error("No wallet address");
-    mintStatus.textContent = "Wallet not connected";
-    return;
-  }
-
-  mintStatus.textContent = "🛠 Minting your NFT...";
-
-  try {
-    const res = await fetch("/.netlify/functions/mint-nft", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: userAddress }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok || result.status == "pending") {
-      console.log("Claim successful!:", result);
-      mintStatus.textContent = "Claim Successful. Try again.";
+    const mintStatus = document.getElementById("mint-status");
+    if (!userAddress) {
+        console.error("No wallet address");
+        mintStatus.textContent = "Wallet not connected";
+        return;
     }
-  } catch (e) {
-    console.error("Network error:", e);
-    mintStatus.textContent = "Network error. Please try later.";
-  }
+
+    mintStatus.textContent = "🛠 Minting your NFT...";
+
+    try {
+        const res = await fetch("/.netlify/functions/mint-nft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: userAddress }),
+        });
+
+        const result = await res.json();
+
+        if (!res.ok || result.status === "pending") {
+            console.log("Claim successful!:", result);
+            mintStatus.textContent = "Claim Successful. Adding to wallet in 5 sec...";
+
+            // Wait 5 seconds
+            setTimeout(async () => {
+                try {
+                    const wasAdded = await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                            type: 'ERC721',
+                            options: {
+                                address: '0x07B329e57DA2BCCc9a46a1cF20a0C8a9434CcfF2', // your contract address
+                                tokenId: result.tokenId || 'LAST_KNOWN_TOKEN_ID', // replace or track from backend if needed
+                                symbol: 'IFT',
+                                decimals: 0,
+                                image: 'https://raw.githubusercontent.com/pashius/simple-nft-minter/refs/heads/master/intern_hand.png',
+                            },
+                        },
+                    });
+
+                    if (wasAdded) {
+                        console.log('NFT added to MetaMask!');
+                        mintStatus.textContent = "✅ NFT added to your MetaMask!";
+                    } else {
+                        console.log('User rejected adding NFT to MetaMask.');
+                        mintStatus.textContent = "⚠ NFT minted, but not added to wallet.";
+                    }
+                } catch (addError) {
+                    console.error('Failed to add NFT to MetaMask:', addError);
+                    mintStatus.textContent = "⚠ NFT minted, but wallet add failed.";
+                }
+            }, 5000);
+        }
+    } catch (e) {
+        console.error("Network error:", e);
+        mintStatus.textContent = "Network error. Please try later.";
+    }
 }
 
 // Add event listeners to buttons
